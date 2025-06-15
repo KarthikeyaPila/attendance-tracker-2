@@ -17,9 +17,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.attendance_tracker_2.Components.HorizontalCard
 import com.example.attendance_tracker_2.Screen
+import com.example.attendance_tracker_2.ViewModels.AttendanceViewModel
+import com.example.attendance_tracker_2.viewModels.WorkerViewModel
 
 
 @Composable
@@ -53,7 +56,15 @@ fun ExportDataCard(lastExportDate: String, onClick: () -> Unit = {}) {
 }
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(
+    navController: NavController,
+    workerViewModel: WorkerViewModel,
+    attendanceViewModel: AttendanceViewModel
+) {
+
+    val checkStates = attendanceViewModel.checkStates
+    val checkedCount = checkStates.count { it.value }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -61,7 +72,10 @@ fun HomeScreen(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Spacer(modifier = Modifier.height(112.dp))
-        AttendanceCard(attended = 0, total = 4) {
+        AttendanceCard(
+            attended = checkedCount,
+            total = attendanceViewModel.checkStates.size
+        ) {
             navController.navigate(Screen.Attendance.route)
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -71,20 +85,21 @@ fun HomeScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(24.dp))
         ExportDataCard(lastExportDate = "31 Mar 25") {
             navController.navigate(Screen.ExportData.route)
-        }
-    }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-    ){
-        Text(
-            text = "By: Karthikeya Pila",
-            fontSize = 16.sp,
-            textAlign = TextAlign.Center,
+        }
+
+        Box(
             modifier = Modifier
-                .align(Alignment.BottomCenter)
-        )
+                .fillMaxSize()
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "By: Karthikeya Pila",
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+            )
+        }
     }
 }

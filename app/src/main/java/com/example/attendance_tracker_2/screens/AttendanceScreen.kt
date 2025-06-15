@@ -32,7 +32,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,22 +41,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.attendance_tracker_2.Helpers.convertMillisToDate
+import com.example.attendance_tracker_2.ViewModels.AttendanceViewModel
+import com.example.attendance_tracker_2.viewModels.WorkerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AttendanceScreen(navController: NavController) {
+fun AttendanceScreen(
+    navController: NavController,
+    attendanceViewModel: AttendanceViewModel,
+    workerViewModel: WorkerViewModel
+) {
     var showDatePicker by remember { mutableStateOf(false) }
-    val todayMillis = remember { System.currentTimeMillis() }
-    val datePickerState = rememberDatePickerState(initialSelectedDateMillis = todayMillis)
-    var selectedDate by remember { mutableStateOf(convertMillisToDate(todayMillis)) }
 
-    val workerList = (1..5).map { "Worker $it" }
-    val checkStates = remember { workerList.map { mutableStateOf(false) } }
+    val datePickerState = rememberDatePickerState(
+        initialSelectedDateMillis = System.currentTimeMillis()
+    )
 
-    var inputText by remember { mutableStateOf("") }
-    val notes = remember { mutableStateListOf<String>() }
+    val workerList = attendanceViewModel.workerList
+    val checkStates = attendanceViewModel.checkStates
+    val inputText = attendanceViewModel.inputText
+    val notes = attendanceViewModel.notes
+    val selectedDate = attendanceViewModel.selectedDate
 
     val checkedCount = checkStates.count { it.value }
 
@@ -82,7 +89,7 @@ fun AttendanceScreen(navController: NavController) {
                                 TextButton(onClick = {
                                     showDatePicker = false
                                     datePickerState.selectedDateMillis?.let {
-                                        selectedDate = convertMillisToDate(it)
+                                        selectedDate.value = convertMillisToDate(it)
                                     }
                                 }) {
                                     Text("OK")
@@ -115,23 +122,15 @@ fun AttendanceScreen(navController: NavController) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Spacer(modifier = Modifier.weight(1f))
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
-                            text = selectedDate,
+                            text = selectedDate.value,
                             style = MaterialTheme.typography.bodyMedium,
                             color = Color.Green,
                             textAlign = TextAlign.Center
                         )
                     }
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.End
-                    ) {
+                    Column(modifier = Modifier.weight(1f), horizontalAlignment = Alignment.End) {
                         Text(
                             text = "$checkedCount / ${checkStates.size}",
                             style = MaterialTheme.typography.bodyMedium,
@@ -168,9 +167,9 @@ fun AttendanceScreen(navController: NavController) {
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             OutlinedTextField(
-                                value = inputText,
+                                value = inputText.value,
                                 onValueChange = { newText ->
-                                    inputText = newText.filter { it.isDigit() }
+                                    inputText.value = newText.filter { it.isDigit() }
                                 },
                                 label = { Text("Today's Expense") },
                                 placeholder = { Text("Enter number") },
@@ -181,9 +180,9 @@ fun AttendanceScreen(navController: NavController) {
                             Spacer(modifier = Modifier.width(8.dp))
 
                             Button(onClick = {
-                                if (inputText.isNotBlank()) {
-                                    notes.add(inputText)
-                                    inputText = ""
+                                if (inputText.value.isNotBlank()) {
+                                    notes.add(inputText.value)
+                                    inputText.value = ""
                                 }
                             }) {
                                 Text("OK")

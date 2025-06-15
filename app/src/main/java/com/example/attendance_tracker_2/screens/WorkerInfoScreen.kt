@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -24,20 +23,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.attendance_tracker_2.Components.AddWorkerDialog
 import com.example.attendance_tracker_2.Components.WorkerCard
-import com.example.attendance_tracker_2.InfoClass
+import com.example.attendance_tracker_2.viewModels.WorkerViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorkerInfoScreen(navController: NavController) {
+fun WorkerInfoScreen(
+    navController: NavController,
+    workerViewModel: WorkerViewModel
+) {
     var showDialog by remember { mutableStateOf(false) }
-
-    val workers = remember {
-        mutableStateListOf(
-            InfoClass("Josh", 15, 1500, 45000, listOf("1 Mar", "5 Mar", "12 Mar")),
-            InfoClass("Karthikeya", 28, 150, 4500, listOf("1 Mar", "2 Mar", "3 Mar", "4 Mar", "5 Mar")),
-            InfoClass("Sahasra", 0, 1000, 30000, listOf(""))
-        )
-    }
+    val workers = workerViewModel.workers
 
     Scaffold(
         topBar = {
@@ -45,7 +40,7 @@ fun WorkerInfoScreen(navController: NavController) {
                 title = { Text("Worker Info") },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Homescreen")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Home screen")
                     }
                 },
 
@@ -68,8 +63,15 @@ fun WorkerInfoScreen(navController: NavController) {
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
-            items(workers) { (name, absence, pay, basepay, absentDates) ->
-                WorkerCard(name, absence, pay, basepay, absentDates)
+            items(workers) { worker ->
+                WorkerCard(
+                    workerId = worker.workerId,
+                    name = worker.name,
+                    absence = worker.absence,
+                    dailypay = worker.pay,
+                    basepay = worker.basepay,
+                    absentDates = worker.absentDates
+                )
             }
         }
 
@@ -77,7 +79,7 @@ fun WorkerInfoScreen(navController: NavController) {
             AddWorkerDialog(
                 onDismiss = { showDialog = false },
                 onAdd = { name, basePay ->
-                    workers.add(workers.size, InfoClass(name, absence = 0, pay = basePay / 30, basepay = basePay, listOf("")))
+                    workerViewModel.addWorker(name, basePay)
                     showDialog = false
                 }
             )

@@ -32,7 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun WorkerCard(name: String, absence: Int, dailypay: Int, basepay: Int, absentDates: List<String>) {
+fun WorkerCard(workerId: Int, name: String, absence: Int, dailypay: Int, basepay: Int, absentDates: List<String>) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
